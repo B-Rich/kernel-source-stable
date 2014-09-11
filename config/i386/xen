@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/i386 3.14.15 Kernel Configuration
+# Linux/i386 3.14.16 Kernel Configuration
 #
 # CONFIG_64BIT is not set
 CONFIG_X86_32=y
@@ -380,6 +380,8 @@ CONFIG_X86_MCE=y
 CONFIG_X86_MCE_INJECT=m
 CONFIG_X86_XEN_MCE=y
 CONFIG_VM86=y
+CONFIG_X86_16BIT=y
+CONFIG_X86_ESPFIX32=y
 CONFIG_TOSHIBA=m
 CONFIG_I8K=m
 CONFIG_MICROCODE=m

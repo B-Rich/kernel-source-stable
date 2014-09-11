@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/i386 3.14.15 Kernel Configuration
+# Linux/i386 3.14.16 Kernel Configuration
 #
 # CONFIG_64BIT is not set
 CONFIG_X86_32=y
@@ -351,6 +351,8 @@ CONFIG_NR_CPUS=32
 CONFIG_PREEMPT_NONE=y
 # CONFIG_PREEMPT_VOLUNTARY is not set
 CONFIG_VM86=y
+CONFIG_X86_16BIT=y
+CONFIG_X86_ESPFIX32=y
 # CONFIG_TOSHIBA is not set
 # CONFIG_I8K is not set
 # CONFIG_MICROCODE_INTEL_EARLY is not set
