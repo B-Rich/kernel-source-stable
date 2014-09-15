@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/ia64 3.2.55 Kernel Configuration
+# Linux/ia64 3.2.56 Kernel Configuration
 #
 CONFIG_SUSE_KERNEL=y
 # CONFIG_ENTERPRISE_SUPPORT is not set
@@ -1597,6 +1597,7 @@ CONFIG_MD_RAID456=m
 # CONFIG_MULTICORE_RAID456 is not set
 CONFIG_MD_MULTIPATH=m
 CONFIG_MD_FAULTY=m
+CONFIG_BLK_DEV_DM_BUILTIN=y
 CONFIG_BLK_DEV_DM=m
 # CONFIG_DM_DEBUG is not set
 CONFIG_DM_BUFIO=m

@@ -7,8 +7,96 @@ Patch-mainline: 2.6.37
 Acked-by: Jeff Mahoney <jeffm@suse.com>
 Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches.py
 
---- head-2012-01-06.orig/arch/x86/Kconfig	2011-12-21 11:19:02.000000000 +0100
-+++ head-2012-01-06/arch/x86/Kconfig	2011-12-21 11:19:15.000000000 +0100
+---
+ arch/x86/Kconfig                                         |   22 
+ arch/x86/include/asm/hw_irq.h                            |    3 
+ arch/x86/include/asm/io.h                                |    4 
+ arch/x86/include/mach-xen/asm/fixmap.h                   |   15 
+ arch/x86/include/mach-xen/asm/highmem.h                  |   15 
+ arch/x86/include/mach-xen/asm/io.h                       |    2 
+ arch/x86/include/mach-xen/asm/irq_vectors.h              |    5 
+ arch/x86/include/mach-xen/asm/irqflags.h                 |   30 
+ arch/x86/include/mach-xen/asm/pci.h                      |   34 
+ arch/x86/include/mach-xen/asm/pgtable.h                  |    4 
+ arch/x86/include/mach-xen/asm/pgtable_32.h               |   16 
+ arch/x86/include/mach-xen/asm/pgtable_64.h               |    4 
+ arch/x86/include/mach-xen/asm/processor.h                |   31 
+ arch/x86/include/mach-xen/asm/smp.h                      |   17 
+ arch/x86/include/mach-xen/asm/spinlock.h                 |    6 
+ arch/x86/include/mach-xen/asm/swiotlb.h                  |    2 
+ arch/x86/include/mach-xen/asm/tlbflush.h                 |    2 
+ arch/x86/kernel/Makefile                                 |    5 
+ arch/x86/kernel/apic/io_apic-xen.c                       |  899 +++++----------
+ arch/x86/kernel/cpu/common-xen.c                         |   24 
+ arch/x86/kernel/e820-xen.c                               |  202 ---
+ arch/x86/kernel/early_printk-xen.c                       |   13 
+ arch/x86/kernel/entry_32-xen.S                           |  313 +----
+ arch/x86/kernel/entry_64-xen.S                           |  111 -
+ arch/x86/kernel/head-xen.c                               |   13 
+ arch/x86/kernel/head32-xen.c                             |   11 
+ arch/x86/kernel/head64-xen.c                             |    5 
+ arch/x86/kernel/irq-xen.c                                |   33 
+ arch/x86/kernel/irq_work-xen.c                           |   23 
+ arch/x86/kernel/microcode_core-xen.c                     |    3 
+ arch/x86/kernel/mpparse-xen.c                            |    5 
+ arch/x86/kernel/pci-dma-xen.c                            |   50 
+ arch/x86/kernel/resource.c                               |    8 
+ arch/x86/kernel/setup-xen.c                              |  254 ++--
+ arch/x86/kernel/smp-xen.c                                |   13 
+ arch/x86/kernel/traps-xen.c                              |   38 
+ arch/x86/mm/fault-xen.c                                  |  117 +
+ arch/x86/mm/highmem_32-xen.c                             |   78 -
+ arch/x86/mm/init-xen.c                                   |    3 
+ arch/x86/mm/init_32-xen.c                                |  181 ---
+ arch/x86/mm/init_64-xen.c                                |  122 --
+ arch/x86/mm/iomap_32-xen.c                               |   43 
+ arch/x86/mm/ioremap-xen.c                                |    5 
+ arch/x86/mm/memblock.c                                   |   10 
+ arch/x86/mm/pgtable-xen.c                                |   27 
+ arch/x86/pci/pcifront.c                                  |    2 
+ arch/x86/xen/Kconfig                                     |    9 
+ drivers/pci/Kconfig                                      |   13 
+ drivers/pci/Makefile                                     |    2 
+ drivers/pci/xen-pcifront.c                               |   11 
+ drivers/xen/Kconfig                                      |    4 
+ drivers/xen/Makefile                                     |   13 
+ drivers/xen/balloon/balloon.c                            |    1 
+ drivers/xen/blkback/blkback.c                            |   71 -
+ drivers/xen/blkback/common.h                             |    7 
+ drivers/xen/blkback/interface.c                          |    2 
+ drivers/xen/blkback/vbd.c                                |    5 
+ drivers/xen/blkback/xenbus.c                             |   22 
+ drivers/xen/blkfront/blkfront.c                          |   95 +
+ drivers/xen/blkfront/block.h                             |    7 
+ drivers/xen/blkfront/vbd.c                               |   30 
+ drivers/xen/blktap/blktap.c                              |    3 
+ drivers/xen/blktap2-new/device.c                         |    3 
+ drivers/xen/blktap2/device.c                             |    2 
+ drivers/xen/core/Makefile                                |    1 
+ drivers/xen/core/evtchn.c                                |  322 +++--
+ drivers/xen/core/smpboot.c                               |   31 
+ drivers/xen/core/spinlock.c                              |   14 
+ drivers/xen/evtchn.c                                     |    4 
+ drivers/xen/fbfront/xenfb.c                              |    3 
+ drivers/xen/gntdev/gntdev.c                              |    3 
+ drivers/xen/pci.c                                        |   11 
+ drivers/xen/privcmd/privcmd.c                            |    6 
+ drivers/xen/scsifront/scsifront.c                        |   31 
+ drivers/xen/sfc_netback/ci/tools/platform/linux_kernel.h |    1 
+ drivers/xen/xenbus/xenbus_dev.c                          |    1 
+ drivers/xen/xenbus/xenbus_probe.c                        |   17 
+ include/xen/Kbuild                                       |    1 
+ include/xen/evtchn.h                                     |    1 
+ include/xen/interface/memory.h                           |    2 
+ include/xen/privcmd.h                                    |   80 -
+ include/xen/public/privcmd.h                             |    1 
+ kernel/power/Kconfig                                     |    4 
+ lib/swiotlb-xen.c                                        |   10 
+ mm/vmalloc.c                                             |    2 
+ 85 files changed, 1658 insertions(+), 2011 deletions(-)
+
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
 @@ -1770,7 +1770,6 @@ config USE_PERCPU_NUMA_NODE_ID
  	depends on NUMA
  
@@ -66,8 +154,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  source "drivers/pci/pcie/Kconfig"
  
  source "drivers/pci/Kconfig"
---- head-2012-01-06.orig/arch/x86/include/asm/hw_irq.h	2011-09-07 16:01:06.000000000 +0200
-+++ head-2012-01-06/arch/x86/include/asm/hw_irq.h	2011-09-07 16:07:24.000000000 +0200
+--- a/arch/x86/include/asm/hw_irq.h
++++ b/arch/x86/include/asm/hw_irq.h
 @@ -101,6 +101,7 @@ static inline void set_io_apic_irq_attr(
  	irq_attr->polarity	= polarity;
  }
@@ -92,8 +180,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  #endif
  #endif
  
---- head-2012-01-06.orig/arch/x86/include/asm/io.h	2012-01-06 10:21:21.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/asm/io.h	2011-09-07 16:07:28.000000000 +0200
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
 @@ -331,7 +331,7 @@ extern void early_iounmap(void __iomem *
  extern void fixup_early_ioremap(void);
  extern bool is_early_ioremap_ptep(pte_t *ptep);
@@ -112,8 +200,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  #define IO_SPACE_LIMIT 0xffff
  
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/fixmap.h	2011-02-01 15:03:03.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/fixmap.h	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/fixmap.h
++++ b/arch/x86/include/mach-xen/asm/fixmap.h
 @@ -217,5 +217,20 @@ static inline unsigned long virt_to_fix(
  	BUG_ON(vaddr >= FIXADDR_TOP || vaddr < FIXADDR_START);
  	return __virt_to_fix(vaddr);
@@ -135,8 +223,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 +
  #endif /* !__ASSEMBLY__ */
  #endif /* _ASM_X86_FIXMAP_H */
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/highmem.h	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/highmem.h	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/highmem.h
++++ b/arch/x86/include/mach-xen/asm/highmem.h
 @@ -58,15 +58,16 @@ extern void kunmap_high(struct page *pag
  
  void *kmap(struct page *page);
@@ -161,8 +249,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	                 PagePinned(page) ? PAGE_KERNEL_RO : kmap_prot)
  
  #define flush_cache_kmaps()	do { } while (0)
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/io.h	2011-02-01 15:03:03.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/io.h	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/io.h
++++ b/arch/x86/include/mach-xen/asm/io.h
 @@ -212,6 +212,7 @@ static inline void __iomem *ioremap(reso
  
  extern void iounmap(volatile void __iomem *addr);
@@ -179,8 +267,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  #define IO_SPACE_LIMIT 0xffff
  
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/irq_vectors.h	2011-02-15 17:49:16.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/irq_vectors.h	2011-02-15 17:50:13.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/irq_vectors.h
++++ b/arch/x86/include/mach-xen/asm/irq_vectors.h
 @@ -13,7 +13,12 @@
  #define NMI_VECTOR			0x02
  #define CALL_FUNC_SINGLE_VECTOR		3
@@ -194,8 +282,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  /*
   * The maximum number of vectors supported by i386 processors
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/irqflags.h	2011-02-01 14:54:13.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/irqflags.h	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/irqflags.h
++++ b/arch/x86/include/mach-xen/asm/irqflags.h
 @@ -47,19 +47,19 @@ void xen_safe_halt(void);
  
  void xen_halt(void);
@@ -263,8 +351,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  })
  
  #else
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/pci.h	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/pci.h	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/pci.h
++++ b/arch/x86/include/mach-xen/asm/pci.h
 @@ -7,6 +7,7 @@
  #include <linux/string.h>
  #include <asm/scatterlist.h>
@@ -273,7 +361,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  #ifdef __KERNEL__
  
-@@ -100,9 +101,36 @@ static inline void early_quirks(void) { 
+@@ -100,9 +101,36 @@ static inline void early_quirks(void) {
  
  extern void pci_iommu_alloc(void);
  
@@ -313,8 +401,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  #define PCI_DMA_BUS_IS_PHYS 0
  
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/pgtable.h	2011-03-23 10:00:38.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/pgtable.h	2011-03-23 10:02:30.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/pgtable.h
++++ b/arch/x86/include/mach-xen/asm/pgtable.h
 @@ -28,6 +28,8 @@ extern unsigned long empty_zero_page[PAG
  extern spinlock_t pgd_lock;
  extern struct list_head pgd_list;
@@ -333,8 +421,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  /*
   * clone_pgd_range(pgd_t *dst, pgd_t *src, int count);
   *
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/pgtable_32.h	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/pgtable_32.h	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/pgtable_32.h
++++ b/arch/x86/include/mach-xen/asm/pgtable_32.h
 @@ -25,7 +25,7 @@
  struct vm_area_struct;
  
@@ -371,8 +459,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  #endif
  
  /* Clear a kernel PTE and flush it from the TLB */
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/pgtable_64.h	2011-03-23 10:02:08.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/pgtable_64.h	2011-03-23 10:02:27.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/pgtable_64.h
++++ b/arch/x86/include/mach-xen/asm/pgtable_64.h
 @@ -104,6 +104,8 @@ static inline void xen_pgd_clear(pgd_t *
  
  #define __pte_mfn(_pte) (((_pte).pte & PTE_PFN_MASK) >> PAGE_SHIFT)
@@ -392,8 +480,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  #define update_mmu_cache(vma, address, ptep) do { } while (0)
  
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/processor.h	2011-03-03 16:47:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/processor.h	2011-03-03 16:47:48.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/processor.h
++++ b/arch/x86/include/mach-xen/asm/processor.h
 @@ -120,6 +120,8 @@ struct cpuinfo_x86 {
  	u16			phys_proc_id;
  	/* Core id: */
@@ -453,8 +541,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  extern void enable_sep_cpu(void);
  extern int sysenter_setup(void);
  
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/smp.h	2011-03-03 16:10:16.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/smp.h	2011-03-03 16:12:15.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/smp.h
++++ b/arch/x86/include/mach-xen/asm/smp.h
 @@ -57,7 +57,7 @@ struct smp_ops {
  	void (*smp_prepare_cpus)(unsigned max_cpus);
  	void (*smp_cpus_done)(unsigned max_cpus);
@@ -497,8 +585,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  #define smp_send_reschedule	xen_smp_send_reschedule
  #define arch_send_call_function_single_ipi	xen_send_call_func_single_ipi
  #define arch_send_call_function_ipi_mask	xen_send_call_func_ipi
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/spinlock.h	2011-11-18 10:53:48.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/spinlock.h	2011-11-18 10:54:40.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/spinlock.h
++++ b/arch/x86/include/mach-xen/asm/spinlock.h
 @@ -190,16 +190,16 @@ static __always_inline int __ticket_spin
  static __always_inline void __ticket_spin_lock(arch_spinlock_t *lock)
  {
@@ -519,8 +607,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	do {
  		count = 1 << 12;
  		__ticket_spin_lock_body;
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/swiotlb.h	2011-02-01 14:55:46.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/swiotlb.h	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/swiotlb.h
++++ b/arch/x86/include/mach-xen/asm/swiotlb.h
 @@ -1,6 +1,4 @@
  #include_next <asm/swiotlb.h>
  
@@ -528,8 +616,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 -
  dma_addr_t swiotlb_map_single_phys(struct device *, phys_addr_t, size_t size,
  				   int dir);
---- head-2012-01-06.orig/arch/x86/include/mach-xen/asm/tlbflush.h	2011-02-01 14:54:13.000000000 +0100
-+++ head-2012-01-06/arch/x86/include/mach-xen/asm/tlbflush.h	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/include/mach-xen/asm/tlbflush.h
++++ b/arch/x86/include/mach-xen/asm/tlbflush.h
 @@ -111,6 +111,4 @@ static inline void flush_tlb_kernel_rang
  	flush_tlb_all();
  }
@@ -537,8 +625,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 -extern void zap_low_mappings(bool early);
 -
  #endif /* _ASM_X86_TLBFLUSH_H */
---- head-2012-01-06.orig/arch/x86/kernel/Makefile	2011-09-07 15:59:08.000000000 +0200
-+++ head-2012-01-06/arch/x86/kernel/Makefile	2011-09-07 16:07:33.000000000 +0200
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
 @@ -113,7 +113,6 @@ ifeq ($(CONFIG_X86_64),y)
  	obj-y				+= vsmp_64.o
  endif
@@ -549,8 +637,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 +disabled-obj-$(CONFIG_XEN) := crash.o early-quirks.o hpet.o i8237.o i8253.o \
 +	i8259.o irqinit.o pci-swiotlb.o reboot.o smpboot.o tsc.o tsc_sync.o vsmp_64.o
  disabled-obj-$(CONFIG_XEN_UNPRIVILEGED_GUEST) += probe_roms_32.o
---- head-2012-01-06.orig/arch/x86/kernel/apic/io_apic-xen.c	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/apic/io_apic-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/kernel/apic/io_apic-xen.c
++++ b/arch/x86/kernel/apic/io_apic-xen.c
 @@ -144,13 +144,9 @@ struct irq_pin_list {
  	struct irq_pin_list *next;
  };
@@ -822,7 +910,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  struct io_apic {
  	unsigned int index;
  	unsigned int unused[3];
-@@ -492,7 +405,7 @@ __ioapic_write_entry(int apic, int pin, 
+@@ -492,7 +405,7 @@ __ioapic_write_entry(int apic, int pin,
  	io_apic_write(apic, 0x10 + 2*pin, eu.w1);
  }
  
@@ -831,7 +919,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  {
  	unsigned long flags;
  	raw_spin_lock_irqsave(&ioapic_lock, flags);
-@@ -523,7 +436,7 @@ static void ioapic_mask_entry(int apic, 
+@@ -523,7 +436,7 @@ static void ioapic_mask_entry(int apic,
   * fast in the common case, and fast for shared ISA-space IRQs.
   */
  static int
@@ -1020,7 +1108,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  {
  	/*
  	 * add it to the IO-APIC irq-routing table:
-@@ -1442,21 +1343,7 @@ int setup_ioapic_entry(int apic_id, int 
+@@ -1442,21 +1343,7 @@ int setup_ioapic_entry(int apic_id, int
  		if (index < 0)
  			panic("Failed to allocate IRTE for ioapic %d\n", apic_id);
  
@@ -1043,7 +1131,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  		/* Set source-id of interrupt request */
  		set_ioapic_sid(&irte, apic_id);
-@@ -1493,18 +1380,14 @@ int setup_ioapic_entry(int apic_id, int 
+@@ -1493,18 +1380,14 @@ int setup_ioapic_entry(int apic_id, int
  	return 0;
  }
  
@@ -1339,7 +1427,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  	dest = apic->cpu_mask_to_apicid_and(cfg->domain, mask);
  
-@@ -2507,29 +2355,14 @@ migrate_ioapic_irq_desc(struct irq_desc 
+@@ -2507,29 +2355,14 @@ migrate_ioapic_irq_desc(struct irq_desc
  	if (cfg->move_in_progress)
  		send_cleanup_vector(cfg);
  
@@ -1491,7 +1579,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	}
  #endif
  
-@@ -2738,7 +2553,6 @@ static void ack_apic_level(unsigned int 
+@@ -2738,7 +2553,6 @@ static void ack_apic_level(unsigned int
  	 * we use the above logic (mask+edge followed by unmask+level) from
  	 * Manfred Spraul to clear the remote IRR.
  	 */
@@ -1499,7 +1587,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	i = cfg->vector;
  	v = apic_read(APIC_TMR + ((i & ~0x1f) >> 1));
  
-@@ -2758,7 +2572,7 @@ static void ack_apic_level(unsigned int 
+@@ -2758,7 +2572,7 @@ static void ack_apic_level(unsigned int
  	if (!(v & (1 << (i & 0x1f)))) {
  		atomic_inc(&irq_mis_count);
  
@@ -1508,7 +1596,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	}
  
  	/* Now we can move and renable the irq */
-@@ -2789,62 +2603,58 @@ static void ack_apic_level(unsigned int 
+@@ -2789,62 +2603,58 @@ static void ack_apic_level(unsigned int
  		 * accurate and is causing problems then it is a hardware bug
  		 * and you can go talk to the chipset vendor about it.
  		 */
@@ -1625,7 +1713,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  {
  	unsigned long v;
  
-@@ -2891,7 +2701,7 @@ static void mask_lapic_irq(unsigned int 
+@@ -2891,7 +2701,7 @@ static void mask_lapic_irq(unsigned int
  	apic_write(APIC_LVT0, v | APIC_LVT_MASKED);
  }
  
@@ -1981,7 +2069,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  	ret = msi_compose_msg(dev, irq, &msg, -1);
  	if (ret < 0)
-@@ -3624,12 +3420,8 @@ static int setup_msi_irq(struct pci_dev 
+@@ -3624,12 +3420,8 @@ static int setup_msi_irq(struct pci_dev
  	set_irq_msi(irq, msidesc);
  	write_msi_msg(irq, &msg);
  
@@ -1996,7 +2084,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  		set_irq_chip_and_handler_name(irq, &msi_ir_chip, handle_edge_irq, "edge");
  	} else
  		set_irq_chip_and_handler_name(irq, &msi_chip, handle_edge_irq, "edge");
-@@ -3639,15 +3431,12 @@ static int setup_msi_irq(struct pci_dev 
+@@ -3639,15 +3431,12 @@ static int setup_msi_irq(struct pci_dev
  	return 0;
  }
  
@@ -2320,8 +2408,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 +	setup_ioapic_irq(0, 0, 0, cfg, 0, 0);
  }
  #endif
---- head-2012-01-06.orig/arch/x86/kernel/cpu/common-xen.c	2011-05-18 10:47:05.000000000 +0200
-+++ head-2012-01-06/arch/x86/kernel/cpu/common-xen.c	2011-05-18 10:47:11.000000000 +0200
+--- a/arch/x86/kernel/cpu/common-xen.c
++++ b/arch/x86/kernel/cpu/common-xen.c
 @@ -700,7 +700,7 @@ static void __init early_identify_cpu(st
  		this_cpu->c_early_init(c);
  
@@ -2372,8 +2460,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	fpu_init();
  	xsave_init();
  }
---- head-2012-01-06.orig/arch/x86/kernel/e820-xen.c	2011-09-23 15:56:09.000000000 +0200
-+++ head-2012-01-06/arch/x86/kernel/e820-xen.c	2011-09-23 15:58:51.000000000 +0200
+--- a/arch/x86/kernel/e820-xen.c
++++ b/arch/x86/kernel/e820-xen.c
 @@ -15,6 +15,7 @@
  #include <linux/pfn.h>
  #include <linux/suspend.h>
@@ -2625,8 +2713,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 +	set_dma_reserve(mem_size_pfn - free_size_pfn);
 +#endif
 +}
---- head-2012-01-06.orig/arch/x86/kernel/early_printk-xen.c	2011-02-01 15:03:10.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/early_printk-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/kernel/early_printk-xen.c
++++ b/arch/x86/kernel/early_printk-xen.c
 @@ -13,6 +13,7 @@
  #include <asm/setup.h>
  #include <asm/pci-direct.h>
@@ -2654,8 +2742,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  		buf++;
  	}
  	return 0;
---- head-2012-01-06.orig/arch/x86/kernel/entry_32-xen.S	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/entry_32-xen.S	2011-04-26 09:16:03.000000000 +0200
+--- a/arch/x86/kernel/entry_32-xen.S
++++ b/arch/x86/kernel/entry_32-xen.S
 @@ -119,8 +119,7 @@ NMI_MASK	= 0x80000000
  
   /* unfortunately push/pop can't be no-op */
@@ -3349,8 +3437,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	jmp error_code
  	CFI_ENDPROC
  END(general_protection)
---- head-2012-01-06.orig/arch/x86/kernel/entry_64-xen.S	2011-10-07 11:40:07.000000000 +0200
-+++ head-2012-01-06/arch/x86/kernel/entry_64-xen.S	2011-10-07 11:40:25.000000000 +0200
+--- a/arch/x86/kernel/entry_64-xen.S
++++ b/arch/x86/kernel/entry_64-xen.S
 @@ -204,23 +204,17 @@ NMI_MASK = 0x80000000
  	.macro FAKE_STACK_FRAME child_rip
  	/* push in order ss, rsp, eflags, cs, rip */
@@ -3627,8 +3715,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	CFI_RESTORE r11
  	mov $-ENOSYS,%eax
  	# any non-zero value not having VGCF_in_syscall set will do:
---- head-2012-01-06.orig/arch/x86/kernel/head-xen.c	2011-09-07 16:01:12.000000000 +0200
-+++ head-2012-01-06/arch/x86/kernel/head-xen.c	2011-09-07 16:07:37.000000000 +0200
+--- a/arch/x86/kernel/head-xen.c
++++ b/arch/x86/kernel/head-xen.c
 @@ -1,5 +1,6 @@
  #include <linux/kernel.h>
  #include <linux/init.h>
@@ -3662,8 +3750,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  #ifdef CONFIG_X86_32
  {
---- head-2012-01-06.orig/arch/x86/kernel/head32-xen.c	2011-05-09 11:41:42.000000000 +0200
-+++ head-2012-01-06/arch/x86/kernel/head32-xen.c	2011-05-09 11:42:39.000000000 +0200
+--- a/arch/x86/kernel/head32-xen.c
++++ b/arch/x86/kernel/head32-xen.c
 @@ -8,6 +8,7 @@
  #include <linux/init.h>
  #include <linux/start_kernel.h>
@@ -3711,8 +3799,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	}
  #endif
  
---- head-2012-01-06.orig/arch/x86/kernel/head64-xen.c	2011-02-01 14:55:46.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/head64-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/kernel/head64-xen.c
++++ b/arch/x86/kernel/head64-xen.c
 @@ -15,6 +15,7 @@
  #include <linux/percpu.h>
  #include <linux/start_kernel.h>
@@ -3732,9 +3820,9 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  	/*
  	 * At this point everything still needed from the boot loader
---- head-2012-01-06.orig/arch/x86/kernel/irq-xen.c	2011-02-01 14:55:46.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/irq-xen.c	2011-02-01 15:09:47.000000000 +0100
-@@ -71,10 +71,10 @@ static int show_other_interrupts(struct 
+--- a/arch/x86/kernel/irq-xen.c
++++ b/arch/x86/kernel/irq-xen.c
+@@ -71,10 +71,10 @@ static int show_other_interrupts(struct
  	for_each_online_cpu(j)
  		seq_printf(p, "%10u ", irq_stats(j)->apic_perf_irqs);
  	seq_printf(p, "  Performance monitoring interrupts\n");
@@ -3748,7 +3836,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  #endif
  #ifndef CONFIG_XEN
  	if (x86_platform_ipi_callback) {
-@@ -172,7 +172,7 @@ int show_interrupts(struct seq_file *p, 
+@@ -172,7 +172,7 @@ int show_interrupts(struct seq_file *p,
  	seq_printf(p, "%*d: ", prec, i);
  	for_each_online_cpu(j)
  		seq_printf(p, "%10u ", kstat_irqs_cpu(i, j));
@@ -3821,8 +3909,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  			raw_spin_unlock(&desc->lock);
  		}
  	}
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ head-2012-01-06/arch/x86/kernel/irq_work-xen.c	2011-02-03 11:19:35.000000000 +0100
+--- /dev/null
++++ b/arch/x86/kernel/irq_work-xen.c
 @@ -0,0 +1,23 @@
 +/*
 + * x86/Xen specific code for irq_work
@@ -3847,8 +3935,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 +	xen_send_IPI_self(IRQ_WORK_VECTOR);
 +}
 +#endif
---- head-2012-01-06.orig/arch/x86/kernel/microcode_core-xen.c	2011-12-01 15:26:48.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/microcode_core-xen.c	2011-12-01 15:28:13.000000000 +0100
+--- a/arch/x86/kernel/microcode_core-xen.c
++++ b/arch/x86/kernel/microcode_core-xen.c
 @@ -12,7 +12,7 @@
   *	Software Developer's Manual
   *	Order Number 253668 or free download from:
@@ -3866,8 +3954,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  };
  
  static struct miscdevice microcode_dev = {
---- head-2012-01-06.orig/arch/x86/kernel/mpparse-xen.c	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/mpparse-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/kernel/mpparse-xen.c
++++ b/arch/x86/kernel/mpparse-xen.c
 @@ -11,6 +11,7 @@
  #include <linux/init.h>
  #include <linux/delay.h>
@@ -3894,8 +3982,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  			if (mpf->physptr)
  				smp_reserve_memory(mpf);
  #else
---- head-2012-01-06.orig/arch/x86/kernel/pci-dma-xen.c	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/pci-dma-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/kernel/pci-dma-xen.c
++++ b/arch/x86/kernel/pci-dma-xen.c
 @@ -11,8 +11,8 @@
  #include <asm/iommu.h>
  #include <asm/gart.h>
@@ -3996,8 +4084,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  	return 0;
  }
---- head-2012-01-06.orig/arch/x86/kernel/resource.c	2012-01-06 10:21:21.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/resource.c	2011-09-23 14:48:43.000000000 +0200
+--- a/arch/x86/kernel/resource.c
++++ b/arch/x86/kernel/resource.c
 @@ -1,3 +1,7 @@
 +#ifdef CONFIG_XEN
 +# define e820 machine_e820
@@ -4017,8 +4105,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	/* Trim out BIOS areas (low 1MB and high 2MB) and E820 regions */
  	if (avail->flags & IORESOURCE_MEM) {
  		if (avail->start < BIOS_END)
---- head-2012-01-06.orig/arch/x86/kernel/setup-xen.c	2011-06-10 12:07:15.000000000 +0200
-+++ head-2012-01-06/arch/x86/kernel/setup-xen.c	2011-06-10 12:07:24.000000000 +0200
+--- a/arch/x86/kernel/setup-xen.c
++++ b/arch/x86/kernel/setup-xen.c
 @@ -31,6 +31,7 @@
  #include <linux/apm_bios.h>
  #include <linux/initrd.h>
@@ -4506,8 +4594,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  }
  
  #ifdef CONFIG_X86_32
---- head-2012-01-06.orig/arch/x86/kernel/smp-xen.c	2011-02-01 15:03:03.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/smp-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/kernel/smp-xen.c
++++ b/arch/x86/kernel/smp-xen.c
 @@ -143,10 +143,10 @@ irqreturn_t smp_reboot_interrupt(int irq
  	return IRQ_HANDLED;
  }
@@ -4537,8 +4625,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  			udelay(1);
  	}
  
---- head-2012-01-06.orig/arch/x86/kernel/traps-xen.c	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/kernel/traps-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/kernel/traps-xen.c
++++ b/arch/x86/kernel/traps-xen.c
 @@ -568,6 +568,7 @@ dotraplinkage void __kprobes do_debug(st
  	if (regs->flags & X86_VM_MASK) {
  		handle_vm86_trap((struct kernel_vm86_regs *) regs,
@@ -4609,8 +4697,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	/*
  	 * Should be a barrier for any external CPU state:
  	 */
---- head-2012-01-06.orig/arch/x86/mm/fault-xen.c	2011-08-15 11:05:39.000000000 +0200
-+++ head-2012-01-06/arch/x86/mm/fault-xen.c	2011-08-15 11:05:47.000000000 +0200
+--- a/arch/x86/mm/fault-xen.c
++++ b/arch/x86/mm/fault-xen.c
 @@ -11,6 +11,7 @@
  #include <linux/kprobes.h>		/* __kprobes, ...		*/
  #include <linux/mmiotrace.h>		/* kmmio_handler, ...		*/
@@ -4864,8 +4952,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	}
  
  	check_v8086_mode(regs, address, tsk);
---- head-2012-01-06.orig/arch/x86/mm/highmem_32-xen.c	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/mm/highmem_32-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/mm/highmem_32-xen.c
++++ b/arch/x86/mm/highmem_32-xen.c
 @@ -9,6 +9,7 @@ void *kmap(struct page *page)
  		return page_address(page);
  	return kmap_high(page);
@@ -5017,8 +5105,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  EXPORT_SYMBOL(copy_highpage);
  
  void __init set_highmem_pages_init(void)
---- head-2012-01-06.orig/arch/x86/mm/init-xen.c	2011-02-01 15:03:03.000000000 +0100
-+++ head-2012-01-06/arch/x86/mm/init-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/mm/init-xen.c
++++ b/arch/x86/mm/init-xen.c
 @@ -2,6 +2,7 @@
  #include <linux/initrd.h>
  #include <linux/ioport.h>
@@ -5036,8 +5124,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  			      e820_table_top << PAGE_SHIFT, "PGTABLE");
  
  	if (!after_bootmem)
---- head-2012-01-06.orig/arch/x86/mm/init_32-xen.c	2011-02-01 15:03:03.000000000 +0100
-+++ head-2012-01-06/arch/x86/mm/init_32-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/mm/init_32-xen.c
++++ b/arch/x86/mm/init_32-xen.c
 @@ -25,6 +25,7 @@
  #include <linux/pfn.h>
  #include <linux/poison.h>
@@ -5298,8 +5386,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 -{
 -	return reserve_bootmem(phys, len, flags);
 -}
---- head-2012-01-06.orig/arch/x86/mm/init_64-xen.c	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/mm/init_64-xen.c	2011-06-30 17:18:57.000000000 +0200
+--- a/arch/x86/mm/init_64-xen.c
++++ b/arch/x86/mm/init_64-xen.c
 @@ -24,6 +24,7 @@
  #include <linux/initrd.h>
  #include <linux/pagemap.h>
@@ -5487,8 +5575,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	return 0;
  }
  
---- head-2012-01-06.orig/arch/x86/mm/iomap_32-xen.c	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/arch/x86/mm/iomap_32-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/mm/iomap_32-xen.c
++++ b/arch/x86/mm/iomap_32-xen.c
 @@ -49,21 +49,20 @@ int iomap_create_wc(resource_size_t base
  }
  EXPORT_SYMBOL_GPL(iomap_create_wc);
@@ -5573,8 +5661,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  	pagefault_enable();
  }
---- head-2012-01-06.orig/arch/x86/mm/ioremap-xen.c	2011-05-09 11:42:22.000000000 +0200
-+++ head-2012-01-06/arch/x86/mm/ioremap-xen.c	2011-05-09 11:42:30.000000000 +0200
+--- a/arch/x86/mm/ioremap-xen.c
++++ b/arch/x86/mm/ioremap-xen.c
 @@ -527,6 +527,11 @@ static inline pte_t * __init early_iorem
  	return &bm_pte[pte_index(addr)];
  }
@@ -5587,8 +5675,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  static unsigned long slot_virt[FIX_BTMAPS_SLOTS] __initdata;
  
  void __init early_ioremap_init(void)
---- head-2012-01-06.orig/arch/x86/mm/memblock.c	2012-01-06 10:21:21.000000000 +0100
-+++ head-2012-01-06/arch/x86/mm/memblock.c	2011-04-13 14:05:37.000000000 +0200
+--- a/arch/x86/mm/memblock.c
++++ b/arch/x86/mm/memblock.c
 @@ -293,6 +293,11 @@ static int __init memblock_x86_find_acti
  {
  	u64 align = PAGE_SIZE;
@@ -5613,8 +5701,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  }
  
  /*
---- head-2012-01-06.orig/arch/x86/mm/pgtable-xen.c	2011-02-01 15:03:03.000000000 +0100
-+++ head-2012-01-06/arch/x86/mm/pgtable-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/mm/pgtable-xen.c
++++ b/arch/x86/mm/pgtable-xen.c
 @@ -428,7 +428,19 @@ static inline void pgd_list_del(pgd_t *p
  #define UNSHARED_PTRS_PER_PGD				\
  	(SHARED_KERNEL_PMD ? KERNEL_PGD_BOUNDARY : PTRS_PER_PGD)
@@ -5673,8 +5761,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	spin_unlock_irqrestore(&pgd_lock, flags);
  
  	return pgd;
---- head-2012-01-06.orig/arch/x86/pci/pcifront.c	2011-02-01 14:50:44.000000000 +0100
-+++ head-2012-01-06/arch/x86/pci/pcifront.c	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/pci/pcifront.c
++++ b/arch/x86/pci/pcifront.c
 @@ -16,7 +16,7 @@ static int pcifront_enable_irq(struct pc
  {
  	u8 irq;
@@ -5684,8 +5772,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  		return -ENOMEM;
  	evtchn_register_pirq(irq);
  	dev->irq = irq;
---- head-2012-01-06.orig/arch/x86/xen/Kconfig	2011-11-17 13:13:25.000000000 +0100
-+++ head-2012-01-06/arch/x86/xen/Kconfig	2011-02-01 15:09:47.000000000 +0100
+--- a/arch/x86/xen/Kconfig
++++ b/arch/x86/xen/Kconfig
 @@ -15,13 +15,16 @@ config PARAVIRT_XEN
  
  config XEN_DOM0
@@ -5706,8 +5794,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  config XEN_PVHVM
  	def_bool y
---- head-2012-01-06.orig/drivers/pci/Kconfig	2011-11-28 09:51:39.000000000 +0100
-+++ head-2012-01-06/drivers/pci/Kconfig	2011-02-01 15:09:47.000000000 +0100
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
 @@ -61,9 +61,9 @@ config PCI_STUB
  
  	  When in doubt, say N.
@@ -5736,9 +5824,9 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  config HT_IRQ
  	bool "Interrupts on hypertransport devices"
  	default y
---- head-2012-01-06.orig/drivers/pci/Makefile	2011-01-31 14:32:40.000000000 +0100
-+++ head-2012-01-06/drivers/pci/Makefile	2011-11-17 13:23:21.000000000 +0100
-@@ -70,7 +70,7 @@ obj-$(CONFIG_PCI_SYSCALL) += syscall.o
+--- a/drivers/pci/Makefile
++++ b/drivers/pci/Makefile
+@@ -71,7 +71,7 @@ obj-$(CONFIG_PCI_SYSCALL) += syscall.o
  
  obj-$(CONFIG_PCI_STUB) += pci-stub.o
  
@@ -5747,8 +5835,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  obj-$(CONFIG_OF) += of.o
  
---- head-2012-01-06.orig/drivers/pci/xen-pcifront.c	2012-01-06 10:21:21.000000000 +0100
-+++ head-2012-01-06/drivers/pci/xen-pcifront.c	2011-12-21 13:07:50.000000000 +0100
+--- a/drivers/pci/xen-pcifront.c
++++ b/drivers/pci/xen-pcifront.c
 @@ -1126,14 +1126,11 @@ static const struct xenbus_device_id xen
  	{""},
  };
@@ -5781,8 +5869,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	pci_frontend_registrar(0 /* disable */);
  }
  module_init(pcifront_init);
---- head-2012-01-06.orig/drivers/xen/Kconfig	2011-11-17 13:13:32.000000000 +0100
-+++ head-2012-01-06/drivers/xen/Kconfig	2011-04-13 14:05:37.000000000 +0200
+--- a/drivers/xen/Kconfig
++++ b/drivers/xen/Kconfig
 @@ -20,10 +20,6 @@ config XEN_PRIVILEGED_GUEST
  config XEN_UNPRIVILEGED_GUEST
  	def_bool !XEN_PRIVILEGED_GUEST
@@ -5794,8 +5882,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	select SUSPEND
  
  config XEN_PRIVCMD
---- head-2012-01-06.orig/drivers/xen/Makefile	2011-11-03 12:30:12.000000000 +0100
-+++ head-2012-01-06/drivers/xen/Makefile	2011-11-03 12:50:01.000000000 +0100
+--- a/drivers/xen/Makefile
++++ b/drivers/xen/Makefile
 @@ -1,6 +1,8 @@
  obj-$(CONFIG_PARAVIRT_XEN)	+= grant-table.o features.o events.o manage.o
 +xen-biomerge-$(CONFIG_PARAVIRT_XEN) := biomerge.o
@@ -5837,8 +5925,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  obj-$(CONFIG_XEN_BLKDEV_BACKEND)	+= blkback/
  obj-$(CONFIG_XEN_BLKDEV_TAP)		+= blktap/
  obj-$(filter m,$(CONFIG_XEN_BLKDEV_TAP2)) += blktap2/ blktap2-new/
---- head-2012-01-06.orig/drivers/xen/balloon/balloon.c	2011-02-01 15:03:10.000000000 +0100
-+++ head-2012-01-06/drivers/xen/balloon/balloon.c	2011-04-26 09:16:13.000000000 +0200
+--- a/drivers/xen/balloon/balloon.c
++++ b/drivers/xen/balloon/balloon.c
 @@ -39,7 +39,6 @@
  #include <linux/mm.h>
  #include <linux/swap.h>
@@ -5847,8 +5935,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  #include <linux/pagemap.h>
  #include <linux/bootmem.h>
  #include <linux/highmem.h>
---- head-2012-01-06.orig/drivers/xen/blkback/blkback.c	2011-11-03 12:27:43.000000000 +0100
-+++ head-2012-01-06/drivers/xen/blkback/blkback.c	2011-11-10 08:37:23.000000000 +0100
+--- a/drivers/xen/blkback/blkback.c
++++ b/drivers/xen/blkback/blkback.c
 @@ -196,13 +196,17 @@ static void fast_flush_area(pending_req_
  
  static void print_stats(blkif_t *blkif)
@@ -6009,8 +6097,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  		blkif->st_wr_sect += preq.nr_sects;
  
  	return;
---- head-2012-01-06.orig/drivers/xen/blkback/common.h	2011-11-28 09:47:49.000000000 +0100
-+++ head-2012-01-06/drivers/xen/blkback/common.h	2011-11-28 09:52:10.000000000 +0100
+--- a/drivers/xen/blkback/common.h
++++ b/drivers/xen/blkback/common.h
 @@ -47,6 +47,7 @@ struct vbd {
  	blkif_vdev_t   handle;      /* what the domain refers to this vbd as */
  	unsigned char  readonly;    /* Non-zero -> read-only */
@@ -6045,8 +6133,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 +			    struct backend_info *, int state);
  
  #endif /* __BLKIF__BACKEND__COMMON_H__ */
---- head-2012-01-06.orig/drivers/xen/blkback/interface.c	2011-04-11 14:51:52.000000000 +0200
-+++ head-2012-01-06/drivers/xen/blkback/interface.c	2011-11-10 08:37:23.000000000 +0100
+--- a/drivers/xen/blkback/interface.c
++++ b/drivers/xen/blkback/interface.c
 @@ -49,6 +49,8 @@ blkif_t *blkif_alloc(domid_t domid)
  	spin_lock_init(&blkif->blk_ring_lock);
  	atomic_set(&blkif->refcnt, 1);
@@ -6056,8 +6144,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	blkif->st_print = jiffies;
  	init_waitqueue_head(&blkif->waiting_to_free);
  
---- head-2012-01-06.orig/drivers/xen/blkback/vbd.c	2011-02-01 14:50:44.000000000 +0100
-+++ head-2012-01-06/drivers/xen/blkback/vbd.c	2011-09-07 12:35:54.000000000 +0200
+--- a/drivers/xen/blkback/vbd.c
++++ b/drivers/xen/blkback/vbd.c
 @@ -55,6 +55,7 @@ int vbd_create(blkif_t *blkif, blkif_vde
  {
  	struct vbd *vbd;
@@ -6077,8 +6165,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	DPRINTK("Successful creation of handle=%04x (dom=%u)\n",
  		handle, blkif->domid);
  	return 0;
---- head-2012-01-06.orig/drivers/xen/blkback/xenbus.c	2011-06-10 12:04:24.000000000 +0200
-+++ head-2012-01-06/drivers/xen/blkback/xenbus.c	2011-11-10 08:37:23.000000000 +0100
+--- a/drivers/xen/blkback/xenbus.c
++++ b/drivers/xen/blkback/xenbus.c
 @@ -119,6 +119,7 @@ VBD_SHOW(oo_req,  "%d\n", be->blkif->st_
  VBD_SHOW(rd_req,  "%d\n", be->blkif->st_rd_req);
  VBD_SHOW(wr_req,  "%d\n", be->blkif->st_wr_req);
@@ -6129,8 +6217,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	if (err)
  		goto abort;
  
---- head-2012-01-06.orig/drivers/xen/blkfront/blkfront.c	2011-07-21 12:19:55.000000000 +0200
-+++ head-2012-01-06/drivers/xen/blkfront/blkfront.c	2011-09-20 11:55:13.000000000 +0200
+--- a/drivers/xen/blkfront/blkfront.c
++++ b/drivers/xen/blkfront/blkfront.c
 @@ -328,7 +328,7 @@ static void connect(struct blkfront_info
  	unsigned long long sectors;
  	unsigned long sector_size;
@@ -6318,8 +6406,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  				GTF_readonly : 0);
  		info->shadow[req->id].req = *req;
  
---- head-2012-01-06.orig/drivers/xen/blkfront/block.h	2011-02-01 14:39:24.000000000 +0100
-+++ head-2012-01-06/drivers/xen/blkfront/block.h	2011-07-01 16:34:26.000000000 +0200
+--- a/drivers/xen/blkfront/block.h
++++ b/drivers/xen/blkfront/block.h
 @@ -83,7 +83,7 @@ struct xlbd_major_info
  
  struct blk_shadow {
@@ -6348,8 +6436,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  #ifdef CONFIG_SYSFS
  int xlvbd_sysfs_addif(struct blkfront_info *info);
---- head-2012-01-06.orig/drivers/xen/blkfront/vbd.c	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/drivers/xen/blkfront/vbd.c	2011-07-01 16:37:54.000000000 +0200
+--- a/drivers/xen/blkfront/vbd.c
++++ b/drivers/xen/blkfront/vbd.c
 @@ -422,7 +422,7 @@ xlvbd_add(blkif_sector_t capacity, int v
  	info->rq = gd->queue;
  	info->gd = gd;
@@ -6411,8 +6499,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  #ifdef CONFIG_SYSFS
  static ssize_t show_media(struct device *dev,
---- head-2012-01-06.orig/drivers/xen/blktap/blktap.c	2012-01-06 10:59:08.000000000 +0100
-+++ head-2012-01-06/drivers/xen/blktap/blktap.c	2012-01-06 10:59:27.000000000 +0100
+--- a/drivers/xen/blktap/blktap.c
++++ b/drivers/xen/blktap/blktap.c
 @@ -443,6 +443,7 @@ static const struct file_operations blkt
  	.unlocked_ioctl = blktap_ioctl,
  	.open    = blktap_open,
@@ -6430,19 +6518,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	/* ctrl device, treat differently */
  	if (!idx)
  		return 0;
---- head-2012-01-06.orig/drivers/xen/blktap2/device.c	2011-11-28 09:51:57.000000000 +0100
-+++ head-2012-01-06/drivers/xen/blktap2/device.c	2011-11-28 09:52:05.000000000 +0100
-@@ -821,7 +821,7 @@ blktap_device_run_queue(struct blktap *t
- 			continue;
- 		}
- 
--		if (req->cmd_flags & REQ_HARDBARRIER) {
-+		if (req->cmd_flags & (REQ_FLUSH|REQ_FUA)) {
- 			blk_start_request(req);
- 			__blk_end_request_all(req, -EOPNOTSUPP);
- 			continue;
---- head-2012-01-06.orig/drivers/xen/blktap2-new/device.c	2011-08-09 11:09:38.000000000 +0200
-+++ head-2012-01-06/drivers/xen/blktap2-new/device.c	2011-08-09 11:09:45.000000000 +0200
+--- a/drivers/xen/blktap2-new/device.c
++++ b/drivers/xen/blktap2-new/device.c
 @@ -304,9 +304,6 @@ blktap_device_configure(struct blktap *t
  	/* Make sure buffer addresses are sector-aligned. */
  	blk_queue_dma_alignment(rq, 511);
@@ -6453,8 +6530,19 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	spin_unlock_irq(&dev->lock);
  }
  
---- head-2012-01-06.orig/drivers/xen/core/Makefile	2011-11-03 12:26:50.000000000 +0100
-+++ head-2012-01-06/drivers/xen/core/Makefile	2011-11-03 12:50:05.000000000 +0100
+--- a/drivers/xen/blktap2/device.c
++++ b/drivers/xen/blktap2/device.c
+@@ -821,7 +821,7 @@ blktap_device_run_queue(struct blktap *t
+ 			continue;
+ 		}
+ 
+-		if (req->cmd_flags & REQ_HARDBARRIER) {
++		if (req->cmd_flags & (REQ_FLUSH|REQ_FUA)) {
+ 			blk_start_request(req);
+ 			__blk_end_request_all(req, -EOPNOTSUPP);
+ 			continue;
+--- a/drivers/xen/core/Makefile
++++ b/drivers/xen/core/Makefile
 @@ -4,7 +4,6 @@
  
  obj-y := evtchn.o gnttab.o reboot.o machine_reboot.o
@@ -6463,8 +6551,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  obj-$(CONFIG_XEN_PRIVILEGED_GUEST) += firmware.o
  obj-$(CONFIG_PROC_FS)		+= xen_proc.o
  obj-$(CONFIG_SYS_HYPERVISOR)	+= hypervisor_sysfs.o
---- head-2012-01-06.orig/drivers/xen/core/evtchn.c	2011-12-21 11:18:19.000000000 +0100
-+++ head-2012-01-06/drivers/xen/core/evtchn.c	2011-12-09 15:18:51.000000000 +0100
+--- a/drivers/xen/core/evtchn.c
++++ b/drivers/xen/core/evtchn.c
 @@ -33,6 +33,7 @@
  #include <linux/module.h>
  #include <linux/slab.h>
@@ -6494,7 +6582,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  /* Constructor for packed IRQ information. */
  static inline u32 mk_irq_info(u32 type, u32 index, u32 evtchn)
  {
-@@ -116,26 +120,47 @@ static inline u32 mk_irq_info(u32 type, 
+@@ -116,26 +120,47 @@ static inline u32 mk_irq_info(u32 type,
   * Accessors for packed IRQ information.
   */
  
@@ -6547,7 +6635,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  }
  
  unsigned int irq_from_evtchn(unsigned int port)
-@@ -180,7 +205,7 @@ static void bind_evtchn_to_cpu(unsigned 
+@@ -180,7 +205,7 @@ static void bind_evtchn_to_cpu(unsigned
  	BUG_ON(!test_bit(chn, s->evtchn_mask));
  
  	if (irq != -1)
@@ -6710,7 +6798,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  					    &dynirq_chip)) < 0)
  			goto out;
  
-@@ -544,14 +573,15 @@ static int bind_ipi_to_irq(unsigned int 
+@@ -544,14 +573,15 @@ static int bind_ipi_to_irq(unsigned int
  		evtchn = bind_ipi.port;
  
  		evtchn_to_irq[evtchn] = irq;
@@ -6729,7 +6817,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
   out:
  	spin_unlock(&irq_mapping_update_lock);
-@@ -560,24 +590,24 @@ static int bind_ipi_to_irq(unsigned int 
+@@ -560,24 +590,24 @@ static int bind_ipi_to_irq(unsigned int
  
  static void unbind_from_irq(unsigned int irq)
  {
@@ -7152,8 +7240,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  }
  
  void __init xen_init_IRQ(void)
---- head-2012-01-06.orig/drivers/xen/core/smpboot.c	2011-02-01 14:50:44.000000000 +0100
-+++ head-2012-01-06/drivers/xen/core/smpboot.c	2011-03-03 16:11:42.000000000 +0100
+--- a/drivers/xen/core/smpboot.c
++++ b/drivers/xen/core/smpboot.c
 @@ -11,7 +11,6 @@
  #include <linux/mm.h>
  #include <linux/sched.h>
@@ -7234,8 +7322,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	xen_spinlock_cleanup(cpu);
  }
  #endif
---- head-2012-01-06.orig/drivers/xen/core/spinlock.c	2012-01-04 17:21:06.000000000 +0100
-+++ head-2012-01-06/drivers/xen/core/spinlock.c	2012-01-04 17:22:15.000000000 +0100
+--- a/drivers/xen/core/spinlock.c
++++ b/drivers/xen/core/spinlock.c
 @@ -21,7 +21,7 @@ struct spinning {
  	struct spinning *prev;
  };
@@ -7299,9 +7387,9 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  		if (unlikely(spinning)) {
  			notify_remote_via_evtchn(per_cpu(poll_evtchn, cpu));
---- head-2012-01-06.orig/drivers/xen/evtchn.c	2011-02-01 15:03:10.000000000 +0100
-+++ head-2012-01-06/drivers/xen/evtchn.c	2011-02-01 15:09:47.000000000 +0100
-@@ -528,7 +528,11 @@ static const struct file_operations evtc
+--- a/drivers/xen/evtchn.c
++++ b/drivers/xen/evtchn.c
+@@ -538,7 +538,11 @@ static const struct file_operations evtc
  
  static struct miscdevice evtchn_miscdev = {
  	.minor        = MISC_DYNAMIC_MINOR,
@@ -7313,9 +7401,9 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	.nodename     = "xen/evtchn",
  	.fops         = &evtchn_fops,
  };
---- head-2012-01-06.orig/drivers/xen/fbfront/xenfb.c	2011-02-01 15:03:03.000000000 +0100
-+++ head-2012-01-06/drivers/xen/fbfront/xenfb.c	2011-04-13 14:12:22.000000000 +0200
-@@ -611,10 +611,9 @@ static int __devinit xenfb_probe(struct 
+--- a/drivers/xen/fbfront/xenfb.c
++++ b/drivers/xen/fbfront/xenfb.c
+@@ -611,10 +611,9 @@ static int __devinit xenfb_probe(struct
  	info->refresh.data = (unsigned long)info;
  	INIT_LIST_HEAD(&info->mappings);
  
@@ -7327,8 +7415,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  	info->nr_pages = (fb_size + PAGE_SIZE - 1) >> PAGE_SHIFT;
  
---- head-2012-01-06.orig/drivers/xen/gntdev/gntdev.c	2011-02-01 15:03:10.000000000 +0100
-+++ head-2012-01-06/drivers/xen/gntdev/gntdev.c	2011-02-01 15:09:47.000000000 +0100
+--- a/drivers/xen/gntdev/gntdev.c
++++ b/drivers/xen/gntdev/gntdev.c
 @@ -145,6 +145,7 @@ static long gntdev_ioctl(struct file *fl
  static const struct file_operations gntdev_fops = {
  	.owner = THIS_MODULE,
@@ -7346,8 +7434,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	try_module_get(THIS_MODULE);
  
  	/* Allocate space for the per-instance private data. */
---- head-2012-01-06.orig/drivers/xen/pci.c	2012-01-06 10:21:21.000000000 +0100
-+++ head-2012-01-06/drivers/xen/pci.c	2011-11-17 13:22:46.000000000 +0100
+--- a/drivers/xen/pci.c
++++ b/drivers/xen/pci.c
 @@ -23,11 +23,20 @@
  #include <xen/interface/physdev.h>
  #include <xen/interface/xen.h>
@@ -7369,7 +7457,7 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  static int xen_add_device(struct device *dev)
  {
-@@ -86,7 +95,9 @@ static int xen_add_device(struct device 
+@@ -86,7 +95,9 @@ static int xen_add_device(struct device
  		r = HYPERVISOR_physdev_op(PHYSDEVOP_pci_device_add, &add);
  		if (r != -ENOSYS)
  			return r;
@@ -7379,8 +7467,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	}
  
  	if (pci_domain_nr(pci_dev->bus))
---- head-2012-01-06.orig/drivers/xen/privcmd/privcmd.c	2011-01-31 18:07:35.000000000 +0100
-+++ head-2012-01-06/drivers/xen/privcmd/privcmd.c	2011-02-01 15:09:47.000000000 +0100
+--- a/drivers/xen/privcmd/privcmd.c
++++ b/drivers/xen/privcmd/privcmd.c
 @@ -14,7 +14,6 @@
  #include <linux/mm.h>
  #include <linux/mman.h>
@@ -7408,8 +7496,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	.unlocked_ioctl = privcmd_ioctl,
  	.mmap = privcmd_mmap,
  };
---- head-2012-01-06.orig/drivers/xen/scsifront/scsifront.c	2011-02-08 10:04:41.000000000 +0100
-+++ head-2012-01-06/drivers/xen/scsifront/scsifront.c	2011-06-28 18:57:14.000000000 +0200
+--- a/drivers/xen/scsifront/scsifront.c
++++ b/drivers/xen/scsifront/scsifront.c
 @@ -315,11 +315,12 @@ big_to_sg:
  	return ref_cnt;
  }
@@ -7476,8 +7564,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  }
  
  
---- head-2012-01-06.orig/drivers/xen/sfc_netback/ci/tools/platform/linux_kernel.h	2008-02-20 09:32:49.000000000 +0100
-+++ head-2012-01-06/drivers/xen/sfc_netback/ci/tools/platform/linux_kernel.h	2011-02-01 15:09:47.000000000 +0100
+--- a/drivers/xen/sfc_netback/ci/tools/platform/linux_kernel.h
++++ b/drivers/xen/sfc_netback/ci/tools/platform/linux_kernel.h
 @@ -54,7 +54,6 @@
  #include <linux/in6.h>
  #include <linux/spinlock.h>
@@ -7486,8 +7574,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  #include <linux/ctype.h>
  #include <linux/uio.h>
  #include <asm/current.h>
---- head-2012-01-06.orig/drivers/xen/xenbus/xenbus_dev.c	2011-02-01 15:03:03.000000000 +0100
-+++ head-2012-01-06/drivers/xen/xenbus/xenbus_dev.c	2011-06-30 17:17:52.000000000 +0200
+--- a/drivers/xen/xenbus/xenbus_dev.c
++++ b/drivers/xen/xenbus/xenbus_dev.c
 @@ -482,6 +482,7 @@ static const struct file_operations xenb
  	.write = xenbus_dev_write,
  	.open = xenbus_dev_open,
@@ -7496,8 +7584,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	.poll = xenbus_dev_poll,
  #ifdef CONFIG_XEN_PRIVILEGED_GUEST
  	.unlocked_ioctl = xenbus_dev_ioctl
---- head-2012-01-06.orig/drivers/xen/xenbus/xenbus_probe.c	2011-12-21 11:18:52.000000000 +0100
-+++ head-2012-01-06/drivers/xen/xenbus/xenbus_probe.c	2011-12-21 11:19:10.000000000 +0100
+--- a/drivers/xen/xenbus/xenbus_probe.c
++++ b/drivers/xen/xenbus/xenbus_probe.c
 @@ -58,6 +58,8 @@
  #include <xen/evtchn.h>
  #include <xen/features.h>
@@ -7569,13 +7657,15 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	return err;
  }
  
---- head-2012-01-06.orig/include/xen/Kbuild	2011-02-01 14:50:44.000000000 +0100
-+++ head-2012-01-06/include/xen/Kbuild	2011-02-01 15:09:47.000000000 +0100
-@@ -1,2 +1 @@
+--- a/include/xen/Kbuild
++++ b/include/xen/Kbuild
+@@ -1,4 +1,3 @@
+ header-y += gntalloc.h
+ header-y += gntdev.h
 -header-y += privcmd.h
  header-y += public/
---- head-2012-01-06.orig/include/xen/evtchn.h	2011-12-21 11:16:00.000000000 +0100
-+++ head-2012-01-06/include/xen/evtchn.h	2011-02-01 15:09:47.000000000 +0100
+--- a/include/xen/evtchn.h
++++ b/include/xen/evtchn.h
 @@ -58,6 +58,7 @@ struct irq_cfg {
  #endif
  	};
@@ -7584,8 +7674,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  #endif
  
  /*
---- head-2012-01-06.orig/include/xen/interface/memory.h	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/include/xen/interface/memory.h	2011-02-01 15:09:47.000000000 +0100
+--- a/include/xen/interface/memory.h
++++ b/include/xen/interface/memory.h
 @@ -198,6 +198,7 @@ struct xen_machphys_mapping {
      xen_ulong_t v_start, v_end; /* Start and end virtual addresses.   */
      xen_ulong_t max_mfn;        /* Maximum MFN that can be looked up. */
@@ -7602,8 +7692,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  typedef struct xen_memory_map xen_memory_map_t;
  DEFINE_XEN_GUEST_HANDLE(xen_memory_map_t);
  
---- head-2012-01-06.orig/include/xen/privcmd.h	2012-01-06 10:21:21.000000000 +0100
-+++ head-2012-01-06/include/xen/privcmd.h	2011-04-13 14:05:37.000000000 +0200
+--- a/include/xen/privcmd.h
++++ b/include/xen/privcmd.h
 @@ -1,77 +1,3 @@
 -/******************************************************************************
 - * privcmd.h
@@ -7685,8 +7775,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
 +#if defined(CONFIG_PARAVIRT_XEN) || !defined(__KERNEL__)
 +#include "public/privcmd.h"
 +#endif
---- head-2012-01-06.orig/include/xen/public/privcmd.h	2011-02-01 14:38:38.000000000 +0100
-+++ head-2012-01-06/include/xen/public/privcmd.h	2011-02-01 15:09:47.000000000 +0100
+--- a/include/xen/public/privcmd.h
++++ b/include/xen/public/privcmd.h
 @@ -34,6 +34,7 @@
  #define __LINUX_PUBLIC_PRIVCMD_H__
  
@@ -7695,8 +7785,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  
  typedef struct privcmd_hypercall
  {
---- head-2012-01-06.orig/kernel/power/Kconfig	2012-01-06 10:21:21.000000000 +0100
-+++ head-2012-01-06/kernel/power/Kconfig	2011-11-17 13:22:58.000000000 +0100
+--- a/kernel/power/Kconfig
++++ b/kernel/power/Kconfig
 @@ -139,7 +139,7 @@ config PM_ADVANCED_DEBUG
  
  config PM_TEST_SUSPEND
@@ -7715,8 +7805,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	select PM_TRACE
  	---help---
  	This enables some cheesy code to save the last PM event point in the
---- head-2012-01-06.orig/lib/swiotlb-xen.c	2011-02-01 15:04:27.000000000 +0100
-+++ head-2012-01-06/lib/swiotlb-xen.c	2011-02-01 15:09:47.000000000 +0100
+--- a/lib/swiotlb-xen.c
++++ b/lib/swiotlb-xen.c
 @@ -58,7 +58,7 @@ static unsigned long io_tlb_nslabs;
   */
  static unsigned long io_tlb_overflow = 32*1024;
@@ -7755,8 +7845,8 @@ Automatically created from "patches.kernel.org/patch-2.6.37" by xen-port-patches
  	if (!io_tlb_start)
  		panic("Cannot allocate SWIOTLB buffer");
  
---- head-2012-01-06.orig/mm/vmalloc.c	2011-09-07 15:49:31.000000000 +0200
-+++ head-2012-01-06/mm/vmalloc.c	2011-09-07 16:06:16.000000000 +0200
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
 @@ -523,8 +523,6 @@ static void vmap_debug_free_range(unsign
  #ifdef CONFIG_DEBUG_PAGEALLOC
  	vunmap_page_range(start, end);

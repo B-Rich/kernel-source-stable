@@ -5157,7 +5157,7 @@ Automatically created from "patches.kernel.org/patch-2.6.31" by xen-port-patches
  	  the AMD64 families of memory controllers (K8 and F10h)
 --- a/drivers/gpu/drm/ttm/ttm_bo.c
 +++ b/drivers/gpu/drm/ttm/ttm_bo.c
-@@ -1453,6 +1453,14 @@ int ttm_bo_global_init(struct drm_global
+@@ -1461,6 +1461,14 @@ int ttm_bo_global_init(struct drm_global
  		ret = -ENOMEM;
  		goto out_no_drp;
  	}
@@ -7382,10 +7382,11 @@ Automatically created from "patches.kernel.org/patch-2.6.31" by xen-port-patches
  header-y += scsi/
 --- a/include/xen/Kbuild
 +++ b/include/xen/Kbuild
-@@ -1,3 +1,2 @@
+@@ -1,4 +1,3 @@
 -header-y += evtchn.h
+ header-y += gntalloc.h
+ header-y += gntdev.h
  header-y += privcmd.h
- header-y += public/
 --- a/include/xen/driver_util.h
 +++ b/include/xen/driver_util.h
 @@ -1,8 +1,14 @@
