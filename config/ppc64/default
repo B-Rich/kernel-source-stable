@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/powerpc 3.2.30 Kernel Configuration
+# Linux/powerpc 3.2.36 Kernel Configuration
 #
 CONFIG_PPC64=y
 
@@ -3928,7 +3928,6 @@ CONFIG_USB_STORAGE_ONETOUCH=m
 CONFIG_USB_STORAGE_KARMA=m
 CONFIG_USB_STORAGE_CYPRESS_ATACB=m
 CONFIG_USB_STORAGE_ENE_UB6250=m
-CONFIG_USB_UAS=m
 # CONFIG_USB_LIBUSUAL is not set
 
 #

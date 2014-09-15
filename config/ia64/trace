@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/ia64 3.2.30 Kernel Configuration
+# Linux/ia64 3.2.36 Kernel Configuration
 #
 CONFIG_SUSE_KERNEL=y
 # CONFIG_ENTERPRISE_SUPPORT is not set
@@ -4056,7 +4056,6 @@ CONFIG_USB_STORAGE_ONETOUCH=m
 CONFIG_USB_STORAGE_KARMA=m
 CONFIG_USB_STORAGE_CYPRESS_ATACB=m
 CONFIG_USB_STORAGE_ENE_UB6250=m
-CONFIG_USB_UAS=m
 # CONFIG_USB_LIBUSUAL is not set
 
 #
