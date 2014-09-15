@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 3.2.51 Kernel Configuration
+# Linux/arm 3.2.54 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -2632,7 +2632,6 @@ CONFIG_ZRAM=m
 # CONFIG_ZRAM_DEBUG is not set
 CONFIG_ZCACHE=m
 # CONFIG_FB_SM7XX is not set
-# CONFIG_TIDSPBRIDGE is not set
 # CONFIG_USB_ENESTORAGE is not set
 # CONFIG_BCM_WIMAX is not set
 CONFIG_FT1000=m
