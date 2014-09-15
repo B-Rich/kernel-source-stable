@@ -8,8 +8,23 @@ Automatically created from "patches.kernel.org/patch-2.6.18" by xen-port-patches
 
 Acked-by: jbeulich@novell.com
 
---- head-2011-12-21.orig/arch/x86/Kconfig	2011-11-17 10:43:16.000000000 +0100
-+++ head-2011-12-21/arch/x86/Kconfig	2011-12-21 10:32:14.000000000 +0100
+---
+ arch/x86/Kconfig                             |    3 
+ arch/x86/include/asm/thread_info.h           |    4 
+ arch/x86/include/mach-xen/asm/processor_32.h |    2 
+ arch/x86/include/mach-xen/asm/time.h         |    6 
+ arch/x86/kernel/Makefile                     |    2 
+ arch/x86/kernel/quirks.c                     |   13 +-
+ arch/x86/kernel/setup64-xen.c                |    4 
+ arch/x86/kernel/time-xen.c                   |  168 +++++++++++++++++++++------
+ arch/x86/pci/irq.c                           |    9 +
+ drivers/acpi/processor_perflib.c             |    4 
+ drivers/xen/console/console.c                |    1 
+ kernel/time/timekeeping.c                    |    6 
+ 12 files changed, 176 insertions(+), 46 deletions(-)
+
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
 @@ -91,7 +91,6 @@ config ARCH_DEFCONFIG
  
  config GENERIC_CMOS_UPDATE
@@ -27,8 +42,46 @@ Acked-by: jbeulich@novell.com
  	default "0x1000000"
  	---help---
  	  This gives the physical address where the kernel is loaded.
---- head-2011-12-21.orig/arch/x86/kernel/Makefile	2011-12-21 10:02:58.000000000 +0100
-+++ head-2011-12-21/arch/x86/kernel/Makefile	2011-12-21 10:32:12.000000000 +0100
+--- a/arch/x86/include/asm/thread_info.h
++++ b/arch/x86/include/asm/thread_info.h
+@@ -144,11 +144,15 @@ struct thread_info {
+ 	 _TIF_USER_RETURN_NOTIFY)
+ 
+ /* flags to check in __switch_to() */
++#ifndef CONFIG_XEN
+ #define _TIF_WORK_CTXSW							\
+ 	(_TIF_IO_BITMAP|_TIF_NOTSC|_TIF_BLOCKSTEP)
+ 
+ #define _TIF_WORK_CTXSW_PREV (_TIF_WORK_CTXSW|_TIF_USER_RETURN_NOTIFY)
+ #define _TIF_WORK_CTXSW_NEXT (_TIF_WORK_CTXSW|_TIF_DEBUG)
++#else
++#define _TIF_WORK_CTXSW _TIF_DEBUG
++#endif
+ 
+ #define PREEMPT_ACTIVE		0x10000000
+ 
+--- a/arch/x86/include/mach-xen/asm/processor_32.h
++++ b/arch/x86/include/mach-xen/asm/processor_32.h
+@@ -23,7 +23,7 @@
+ #include <xen/interface/physdev.h>
+ 
+ /* flag for disabling the tsc */
+-extern int tsc_disable;
++#define tsc_disable 0
+ 
+ struct desc_struct {
+ 	unsigned long a,b;
+--- /dev/null
++++ b/arch/x86/include/mach-xen/asm/time.h
+@@ -0,0 +1,6 @@
++#ifdef CONFIG_XEN_PRIVILEGED_GUEST
++struct timespec;
++int xen_update_wallclock(const struct timespec *);
++#endif
++
++#include_next <asm/time.h>
+--- a/arch/x86/kernel/Makefile
++++ b/arch/x86/kernel/Makefile
 @@ -117,5 +117,5 @@ ifeq ($(CONFIG_X86_64),y)
  	pci-dma_64-$(CONFIG_XEN)	+= pci-dma_32.o
  endif
@@ -36,8 +89,8 @@ Acked-by: jbeulich@novell.com
 -disabled-obj-$(CONFIG_XEN) := i8237.o i8259_$(BITS).o reboot.o smpboot_$(BITS).o
 +disabled-obj-$(CONFIG_XEN) := i8237.o i8253.o i8259_$(BITS).o reboot.o smpboot_$(BITS).o tsc_$(BITS).o
  %/head_$(BITS).o %/head_$(BITS).s: $(if $(CONFIG_XEN),EXTRA_AFLAGS,dummy) :=
---- head-2011-12-21.orig/arch/x86/kernel/quirks.c	2011-12-21 10:06:11.000000000 +0100
-+++ head-2011-12-21/arch/x86/kernel/quirks.c	2011-09-07 15:20:23.000000000 +0200
+--- a/arch/x86/kernel/quirks.c
++++ b/arch/x86/kernel/quirks.c
 @@ -6,7 +6,7 @@
  
  #include <asm/hpet.h>
@@ -69,8 +122,8 @@ Acked-by: jbeulich@novell.com
  	}
  
  	/* put back the original value for config space*/
---- head-2011-12-21.orig/arch/x86/kernel/setup64-xen.c	2008-01-28 12:24:19.000000000 +0100
-+++ head-2011-12-21/arch/x86/kernel/setup64-xen.c	2011-01-31 17:02:29.000000000 +0100
+--- a/arch/x86/kernel/setup64-xen.c
++++ b/arch/x86/kernel/setup64-xen.c
 @@ -363,5 +363,7 @@ void __cpuinit cpu_init (void)
  
  	fpu_init(); 
@@ -80,8 +133,8 @@ Acked-by: jbeulich@novell.com
 +	if (raw_irqs_disabled())
 +		kernel_eflags &= ~X86_EFLAGS_IF;
  }
---- head-2011-12-21.orig/arch/x86/kernel/time-xen.c	2010-08-31 09:24:21.000000000 +0200
-+++ head-2011-12-21/arch/x86/kernel/time-xen.c	2011-07-12 11:09:48.000000000 +0200
+--- a/arch/x86/kernel/time-xen.c
++++ b/arch/x86/kernel/time-xen.c
 @@ -45,7 +45,6 @@
  #include <linux/sysdev.h>
  #include <linux/bcd.h>
@@ -413,8 +466,8 @@ Acked-by: jbeulich@novell.com
  				      timer_name[cpu],
  				      NULL);
  	if (irq < 0)
---- head-2011-12-21.orig/arch/x86/pci/irq.c	2011-12-21 10:06:11.000000000 +0100
-+++ head-2011-12-21/arch/x86/pci/irq.c	2011-08-09 10:33:29.000000000 +0200
+--- a/arch/x86/pci/irq.c
++++ b/arch/x86/pci/irq.c
 @@ -94,13 +94,18 @@ static struct irq_routing_table * __init
  	u8 *addr;
  	struct irq_routing_table *rt;
@@ -436,8 +489,8 @@ Acked-by: jbeulich@novell.com
  		rt = pirq_check_routing_table(addr);
  		if (rt)
  			return rt;
---- head-2011-12-21.orig/drivers/acpi/processor_perflib.c	2011-06-30 15:36:54.000000000 +0200
-+++ head-2011-12-21/drivers/acpi/processor_perflib.c	2011-06-30 16:02:05.000000000 +0200
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
 @@ -574,6 +574,8 @@ end:
  	return result;
  }
@@ -453,8 +506,8 @@ Acked-by: jbeulich@novell.com
  EXPORT_SYMBOL(acpi_processor_unregister_performance);
 +
 +#endif /* !CONFIG_PROCESSOR_EXTERNAL_CONTROL */
---- head-2011-12-21.orig/drivers/xen/console/console.c	2009-03-18 10:39:31.000000000 +0100
-+++ head-2011-12-21/drivers/xen/console/console.c	2011-01-31 17:02:29.000000000 +0100
+--- a/drivers/xen/console/console.c
++++ b/drivers/xen/console/console.c
 @@ -94,7 +94,6 @@ static int __init xencons_setup(char *st
  {
  	char *q;
@@ -463,46 +516,8 @@ Acked-by: jbeulich@novell.com
  
  	console_use_vt = 1;
  	if (!strncmp(str, "ttyS", 4)) {
---- head-2011-12-21.orig/arch/x86/include/mach-xen/asm/processor_32.h	2008-01-28 12:24:19.000000000 +0100
-+++ head-2011-12-21/arch/x86/include/mach-xen/asm/processor_32.h	2011-01-31 17:02:29.000000000 +0100
-@@ -23,7 +23,7 @@
- #include <xen/interface/physdev.h>
- 
- /* flag for disabling the tsc */
--extern int tsc_disable;
-+#define tsc_disable 0
- 
- struct desc_struct {
- 	unsigned long a,b;
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ head-2011-12-21/arch/x86/include/mach-xen/asm/time.h	2011-07-11 10:35:24.000000000 +0200
-@@ -0,0 +1,6 @@
-+#ifdef CONFIG_XEN_PRIVILEGED_GUEST
-+struct timespec;
-+int xen_update_wallclock(const struct timespec *);
-+#endif
-+
-+#include_next <asm/time.h>
---- head-2011-12-21.orig/arch/x86/include/asm/thread_info.h	2011-12-21 10:06:11.000000000 +0100
-+++ head-2011-12-21/arch/x86/include/asm/thread_info.h	2011-01-31 17:02:29.000000000 +0100
-@@ -144,11 +144,15 @@ struct thread_info {
- 	 _TIF_USER_RETURN_NOTIFY)
- 
- /* flags to check in __switch_to() */
-+#ifndef CONFIG_XEN
- #define _TIF_WORK_CTXSW							\
- 	(_TIF_IO_BITMAP|_TIF_NOTSC|_TIF_BLOCKSTEP)
- 
- #define _TIF_WORK_CTXSW_PREV (_TIF_WORK_CTXSW|_TIF_USER_RETURN_NOTIFY)
- #define _TIF_WORK_CTXSW_NEXT (_TIF_WORK_CTXSW|_TIF_DEBUG)
-+#else
-+#define _TIF_WORK_CTXSW _TIF_DEBUG
-+#endif
- 
- #define PREEMPT_ACTIVE		0x10000000
- 
---- head-2011-12-21.orig/kernel/time/timekeeping.c	2011-12-21 10:06:11.000000000 +0100
-+++ head-2011-12-21/kernel/time/timekeeping.c	2011-07-11 10:33:46.000000000 +0200
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
 @@ -20,6 +20,9 @@
  #include <linux/time.h>
  #include <linux/tick.h>
@@ -513,13 +528,13 @@ Acked-by: jbeulich@novell.com
  
  /* Structure holding internal timekeeping values. */
  struct timekeeper {
-@@ -380,6 +383,9 @@ int do_settimeofday(const struct timespe
- 
- 	update_vsyscall(&xtime, &wall_to_monotonic, timekeeper.clock,
- 				timekeeper.mult);
+@@ -191,6 +194,9 @@ static void timekeeping_update(bool clea
+ 	update_rt_offset();
+ 	update_vsyscall(&xtime, &wall_to_monotonic,
+ 			 timekeeper.clock, timekeeper.mult);
 +#ifdef CONFIG_XEN_PRIVILEGED_GUEST
 +	xen_update_wallclock(tv);
 +#endif
+ }
  
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
  
