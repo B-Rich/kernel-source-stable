@@ -5352,7 +5352,7 @@ Acked-by: jbeulich@novell.com
  
  /*
   * Macros for manipulating rings.
-@@ -116,86 +154,95 @@ struct __name##_back_ring {						\
+@@ -116,76 +154,85 @@ struct __name##_back_ring {						\
   */
  
  /* Initialising empty rings */
@@ -5475,6 +5475,11 @@ Acked-by: jbeulich@novell.com
 +#define RING_REQUEST_CONS_OVERFLOW(_r, _cons)                           \
      (((_cons) - (_r)->rsp_prod_pvt) >= RING_SIZE(_r))
  
+ /* Ill-behaved frontend determination: Can there be this many requests? */
+@@ -193,14 +240,14 @@ struct __name##_back_ring {						\
+     (((_prod) - (_r)->rsp_prod_pvt) > RING_SIZE(_r))
+ 
+ 
 -#define RING_PUSH_REQUESTS(_r) do {					\
 -    wmb(); /* back sees requests /before/ updated producer index */	\
 -    (_r)->sring->req_prod = (_r)->req_prod_pvt;				\
@@ -5492,7 +5497,7 @@ Acked-by: jbeulich@novell.com
  } while (0)
  
  /*
-@@ -228,40 +275,40 @@ struct __name##_back_ring {						\
+@@ -233,40 +280,40 @@ struct __name##_back_ring {						\
   *  field appropriately.
   */
  
