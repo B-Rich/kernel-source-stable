@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 3.2.56 Kernel Configuration
+# Linux/arm 3.2.62 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_MIGHT_HAVE_PCI=y
@@ -227,7 +227,7 @@ CONFIG_INLINE_WRITE_UNLOCK=y
 # CONFIG_INLINE_WRITE_UNLOCK_BH is not set
 CONFIG_INLINE_WRITE_UNLOCK_IRQ=y
 # CONFIG_INLINE_WRITE_UNLOCK_IRQRESTORE is not set
-# CONFIG_MUTEX_SPIN_ON_OWNER is not set
+CONFIG_ARCH_SUPPORTS_ATOMIC_RMW=y
 CONFIG_FREEZER=y
 
 #

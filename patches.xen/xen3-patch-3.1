@@ -93,9 +93,9 @@ Acked-by: jbeulich@suse.com
 -	select CLKEVT_I8253
 +	select CLKEVT_I8253 if !XEN
  	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
  
- config INSTRUCTION_DECODER
-@@ -102,7 +102,7 @@ config GENERIC_CLOCKEVENTS
+@@ -103,7 +103,7 @@ config GENERIC_CLOCKEVENTS
  
  config ARCH_CLOCKSOURCE_DATA
  	def_bool y
@@ -1384,7 +1384,7 @@ Acked-by: jbeulich@suse.com
  				     offsetof(struct timespec, tv_nsec) ||
 --- a/drivers/gpu/drm/i915/intel_display.c
 +++ b/drivers/gpu/drm/i915/intel_display.c
-@@ -8165,7 +8165,11 @@ void gen6_update_ring_freq(struct drm_i9
+@@ -8181,7 +8181,11 @@ void gen6_update_ring_freq(struct drm_i9
  	 * over
  	 */
  	if (!max_ia_freq)
@@ -3001,7 +3001,7 @@ Acked-by: jbeulich@suse.com
  
  	/* Disable devices (but not bridges) */
  	if (dev->hdr_type == PCI_HEADER_TYPE_NORMAL) {
-@@ -118,6 +126,9 @@ void xen_pcibk_reset_device(struct pci_d
+@@ -119,6 +127,9 @@ void xen_pcibk_reset_device(struct pci_d
  
  		pci_write_config_word(dev, PCI_COMMAND, 0);
  
@@ -3011,7 +3011,7 @@ Acked-by: jbeulich@suse.com
  		dev->is_busmaster = 0;
  	} else {
  		pci_read_config_word(dev, PCI_COMMAND, &cmd);
-@@ -135,7 +146,9 @@ static
+@@ -136,7 +147,9 @@ static
  int xen_pcibk_enable_msi(struct xen_pcibk_device *pdev,
  			 struct pci_dev *dev, struct xen_pci_op *op)
  {
@@ -3021,7 +3021,7 @@ Acked-by: jbeulich@suse.com
  	int status;
  
  	if (unlikely(verbose_request))
-@@ -154,14 +167,20 @@ int xen_pcibk_enable_msi(struct xen_pcib
+@@ -155,14 +168,20 @@ int xen_pcibk_enable_msi(struct xen_pcib
  	/* The value the guest needs is actually the IDT vector, not the
  	 * the local domain's IRQ number. */
  
@@ -3042,7 +3042,7 @@ Acked-by: jbeulich@suse.com
  
  	return 0;
  }
-@@ -170,20 +189,28 @@ static
+@@ -171,20 +190,28 @@ static
  int xen_pcibk_disable_msi(struct xen_pcibk_device *pdev,
  			  struct pci_dev *dev, struct xen_pci_op *op)
  {
@@ -3071,7 +3071,7 @@ Acked-by: jbeulich@suse.com
  	return 0;
  }
  
-@@ -191,7 +218,9 @@ static
+@@ -192,7 +219,9 @@ static
  int xen_pcibk_enable_msix(struct xen_pcibk_device *pdev,
  			  struct pci_dev *dev, struct xen_pci_op *op)
  {
@@ -3081,7 +3081,7 @@ Acked-by: jbeulich@suse.com
  	int i, result;
  	struct msix_entry *entries;
  
-@@ -215,9 +244,13 @@ int xen_pcibk_enable_msix(struct xen_pci
+@@ -216,9 +245,13 @@ int xen_pcibk_enable_msix(struct xen_pci
  	if (result == 0) {
  		for (i = 0; i < op->value; i++) {
  			op->msix_entries[i].entry = entries[i].entry;
@@ -3095,7 +3095,7 @@ Acked-by: jbeulich@suse.com
  				if (unlikely(verbose_request))
  					printk(KERN_DEBUG DRV_NAME ": %s: " \
  						"MSI-X[%d]: %d\n",
-@@ -231,9 +264,11 @@ int xen_pcibk_enable_msix(struct xen_pci
+@@ -232,9 +265,11 @@ int xen_pcibk_enable_msix(struct xen_pci
  	kfree(entries);
  
  	op->value = result;
@@ -3107,7 +3107,7 @@ Acked-by: jbeulich@suse.com
  
  	return result;
  }
-@@ -242,12 +277,16 @@ static
+@@ -243,12 +278,16 @@ static
  int xen_pcibk_disable_msix(struct xen_pcibk_device *pdev,
  			   struct pci_dev *dev, struct xen_pci_op *op)
  {
@@ -3124,7 +3124,7 @@ Acked-by: jbeulich@suse.com
  	/*
  	 * SR-IOV devices (which don't have any legacy IRQ) have
  	 * an undefined IRQ value of zero.
-@@ -259,6 +298,9 @@ int xen_pcibk_disable_msix(struct xen_pc
+@@ -260,6 +299,9 @@ int xen_pcibk_disable_msix(struct xen_pc
  	dev_data = pci_get_drvdata(dev);
  	if (dev_data)
  		dev_data->ack_intr = 1;
@@ -3134,7 +3134,7 @@ Acked-by: jbeulich@suse.com
  	return 0;
  }
  #endif
-@@ -303,9 +345,14 @@ void xen_pcibk_do_op(struct work_struct
+@@ -304,9 +346,14 @@ void xen_pcibk_do_op(struct work_struct
  	if (dev == NULL)
  		op->err = XEN_PCI_ERR_dev_not_found;
  	else {
@@ -3149,7 +3149,7 @@ Acked-by: jbeulich@suse.com
  		switch (op->cmd) {
  		case XEN_PCI_OP_conf_read:
  			op->err = xen_pcibk_config_read(dev,
-@@ -334,11 +381,13 @@ void xen_pcibk_do_op(struct work_struct
+@@ -335,11 +382,13 @@ void xen_pcibk_do_op(struct work_struct
  			break;
  		}
  	}
@@ -3163,7 +3163,7 @@ Acked-by: jbeulich@suse.com
  	/* Tell the driver domain that we're done. */
  	wmb();
  	clear_bit(_XEN_PCIF_active, (unsigned long *)&pdev->sh_info->flags);
-@@ -363,6 +412,8 @@ irqreturn_t xen_pcibk_handle_event(int i
+@@ -364,6 +413,8 @@ irqreturn_t xen_pcibk_handle_event(int i
  
  	return IRQ_HANDLED;
  }
@@ -3172,7 +3172,7 @@ Acked-by: jbeulich@suse.com
  static irqreturn_t xen_pcibk_guest_interrupt(int irq, void *dev_id)
  {
  	struct pci_dev *dev = (struct pci_dev *)dev_id;
-@@ -382,3 +433,4 @@ static irqreturn_t xen_pcibk_guest_inter
+@@ -383,3 +434,4 @@ static irqreturn_t xen_pcibk_guest_inter
  	}
  	return IRQ_NONE;
  }
