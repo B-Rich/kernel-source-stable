@@ -27,30 +27,30 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
 
 --- a/fs/ext4/Kconfig
 +++ b/fs/ext4/Kconfig
-@@ -83,3 +83,13 @@ config EXT4_DEBUG
- 
+@@ -84,3 +84,13 @@ config EXT4_DEBUG
  	  If you select Y here, then you will be able to turn on debugging
- 	  with a command such as "echo 1 > /sys/kernel/debug/ext4/mballoc-debug"
+ 	  with a command such as:
+ 		echo 1 > /sys/module/ext4/parameters/mballoc_debug
 +
 +config EXT4_FS_RICHACL
-+      bool "Ext4 Rich Access Control Lists (EXPERIMENTAL)"
-+      depends on EXT4_FS_XATTR && EXPERIMENTAL
-+      select FS_RICHACL
-+      help
-+	Rich ACLs are an implementation of NFSv4 ACLs, extended by file masks
-+	to fit into the standard POSIX file permission model.  They are
-+	designed to work seamlessly locally as well as across the NFSv4 and
-+	CIFS/SMB2 network file system protocols.
++	bool "Ext4 Rich Access Control Lists (EXPERIMENTAL)"
++	depends on EXT4_FS_XATTR && EXPERIMENTAL
++	select FS_RICHACL
++	help
++	  Rich ACLs are an implementation of NFSv4 ACLs, extended by file masks
++	  to fit into the standard POSIX file permission model.  They are
++	  designed to work seamlessly locally as well as across the NFSv4 and
++	  CIFS/SMB2 network file system protocols.
 --- a/fs/ext4/Makefile
 +++ b/fs/ext4/Makefile
-@@ -11,3 +11,4 @@ ext4-y	:= balloc.o bitmap.o dir.o file.o
+@@ -12,3 +12,4 @@ ext4-y	:= balloc.o bitmap.o dir.o file.o
  ext4-$(CONFIG_EXT4_FS_XATTR)		+= xattr.o xattr_user.o xattr_trusted.o
  ext4-$(CONFIG_EXT4_FS_POSIX_ACL)	+= acl.o
  ext4-$(CONFIG_EXT4_FS_SECURITY)		+= xattr_security.o
 +ext4-$(CONFIG_EXT4_FS_RICHACL)  	+= richacl.o
 --- a/fs/ext4/ext4.h
 +++ b/fs/ext4/ext4.h
-@@ -841,6 +841,10 @@ struct ext4_inode_info {
+@@ -892,6 +892,10 @@ struct ext4_inode_info {
  	 */
  	tid_t i_sync_tid;
  	tid_t i_datasync_tid;
@@ -71,7 +71,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  
  /*
   * Called when an inode is released. Note that this is different
-@@ -161,5 +162,8 @@ const struct inode_operations ext4_file_
+@@ -258,5 +259,8 @@ const struct inode_operations ext4_file_
  #endif
  	.get_acl	= ext4_get_acl,
  	.fiemap		= ext4_fiemap,
@@ -90,7 +90,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  
  #include <trace/events/ext4.h>
  
-@@ -1023,7 +1024,11 @@ got:
+@@ -907,7 +908,11 @@ got:
  	if (err)
  		goto fail_drop;
  
@@ -105,7 +105,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  
 --- a/fs/ext4/inode.c
 +++ b/fs/ext4/inode.c
-@@ -45,6 +45,7 @@
+@@ -43,6 +43,7 @@
  #include "xattr.h"
  #include "acl.h"
  #include "truncate.h"
@@ -113,8 +113,8 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  
  #include <trace/events/ext4.h>
  
-@@ -5041,6 +5042,9 @@ struct inode *ext4_iget(struct super_blo
-	set_nlink(inode, le16_to_cpu(raw_inode->i_links_count));
+@@ -3789,6 +3790,9 @@ struct inode *ext4_iget(struct super_blo
+ 	set_nlink(inode, le16_to_cpu(raw_inode->i_links_count));
  
  	ext4_clear_state_flags(ei);	/* Only relevant on 32-bit archs */
 +#ifdef CONFIG_EXT4_FS_RICHACL
@@ -123,7 +123,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  	ei->i_dir_start_lookup = 0;
  	ei->i_dtime = le32_to_cpu(raw_inode->i_dtime);
  	/* We now have enough fields to check if the inode was active or not.
-@@ -5466,7 +5470,11 @@ int ext4_setattr(struct dentry *dentry,
+@@ -4219,7 +4223,11 @@ int ext4_setattr(struct dentry *dentry,
  	int orphan = 0;
  	const unsigned int ia_valid = attr->ia_valid;
  
@@ -136,7 +136,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  	if (error)
  		return error;
  
-@@ -5563,9 +5571,12 @@ int ext4_setattr(struct dentry *dentry,
+@@ -4321,9 +4329,12 @@ int ext4_setattr(struct dentry *dentry,
  	if (orphan && inode->i_nlink)
  		ext4_orphan_del(NULL, inode);
  
@@ -162,7 +162,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  
  #include <trace/events/ext4.h>
  /*
-@@ -2522,6 +2523,9 @@ const struct inode_operations ext4_dir_i
+@@ -2591,6 +2592,9 @@ const struct inode_operations ext4_dir_i
  #endif
  	.get_acl	= ext4_get_acl,
  	.fiemap         = ext4_fiemap,
@@ -172,7 +172,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  };
  
  const struct inode_operations ext4_special_inode_operations = {
-@@ -2533,4 +2537,7 @@ const struct inode_operations ext4_speci
+@@ -2602,4 +2606,7 @@ const struct inode_operations ext4_speci
  	.removexattr	= generic_removexattr,
  #endif
  	.get_acl	= ext4_get_acl,
@@ -537,7 +537,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
 +#endif  /* __FS_EXT4_RICHACL_H */
 --- a/fs/ext4/super.c
 +++ b/fs/ext4/super.c
-@@ -46,6 +46,7 @@
+@@ -50,6 +50,7 @@
  #include "xattr.h"
  #include "acl.h"
  #include "mballoc.h"
@@ -545,7 +545,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  
  #define CREATE_TRACE_POINTS
  #include <trace/events/ext4.h>
-@@ -795,7 +796,9 @@ static struct inode *ext4_alloc_inode(st
+@@ -894,7 +895,9 @@ static struct inode *ext4_alloc_inode(st
  	ei = kmem_cache_alloc(ext4_inode_cachep, GFP_NOFS);
  	if (!ei)
  		return NULL;
@@ -556,7 +556,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  	ei->vfs_inode.i_version = 1;
  	ei->vfs_inode.i_data.writeback_index = 0;
  	memset(&ei->i_cached_extent, 0, sizeof(struct ext4_ext_cache));
-@@ -873,6 +876,13 @@ void ext4_clear_inode(struct inode *inod
+@@ -984,6 +987,13 @@ void ext4_clear_inode(struct inode *inod
  	invalidate_inode_buffers(inode);
  	end_writeback(inode);
  	dquot_drop(inode);
@@ -570,7 +570,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  	ext4_discard_preallocations(inode);
  	if (EXT4_I(inode)->jinode) {
  		jbd2_journal_release_jbd_inode(EXT4_JOURNAL(inode),
-@@ -973,10 +983,13 @@ static int ext4_show_options(struct seq_
+@@ -1082,10 +1092,13 @@ static int ext4_show_options(struct seq_
  	if (!test_opt(sb, XATTR_USER))
  		seq_puts(seq, ",nouser_xattr");
  #endif
@@ -588,7 +588,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  		seq_puts(seq, ",noacl");
  #endif
  	if (sbi->s_commit_interval != JBD2_DEFAULT_MAX_COMMIT_AGE*HZ) {
-@@ -1203,7 +1216,7 @@ enum {
+@@ -1320,7 +1333,7 @@ enum {
  	Opt_bsd_df, Opt_minix_df, Opt_grpid, Opt_nogrpid,
  	Opt_resgid, Opt_resuid, Opt_sb, Opt_err_cont, Opt_err_panic, Opt_err_ro,
  	Opt_nouid32, Opt_debug, Opt_oldalloc, Opt_orlov,
@@ -597,7 +597,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  	Opt_auto_da_alloc, Opt_noauto_da_alloc, Opt_noload, Opt_nobh, Opt_bh,
  	Opt_commit, Opt_min_batch_time, Opt_max_batch_time,
  	Opt_journal_update, Opt_journal_dev,
-@@ -1241,6 +1254,7 @@ static const match_table_t tokens = {
+@@ -1358,6 +1371,7 @@ static const match_table_t tokens = {
  	{Opt_user_xattr, "user_xattr"},
  	{Opt_nouser_xattr, "nouser_xattr"},
  	{Opt_acl, "acl"},
@@ -605,7 +605,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  	{Opt_noacl, "noacl"},
  	{Opt_noload, "noload"},
  	{Opt_noload, "norecovery"},
-@@ -1479,17 +1493,26 @@ static int parse_options(char *options,
+@@ -1603,17 +1617,26 @@ static int parse_options(char *options,
  			ext4_msg(sb, KERN_ERR, "(no)user_xattr options not supported");
  			break;
  #endif
@@ -636,7 +636,7 @@ Signed-off-by: Andreas Gruenbacher <agruen@suse.de>
  			break;
  #endif
  		case Opt_journal_update:
-@@ -2642,7 +2665,7 @@ static int ext4_fill_super(struct super_
+@@ -3304,7 +3327,7 @@ static int ext4_fill_super(struct super_
  #ifdef CONFIG_EXT4_FS_XATTR
  	set_opt(sb, XATTR_USER);
  #endif
