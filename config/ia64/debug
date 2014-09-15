@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/ia64 3.2.36 Kernel Configuration
+# Linux/ia64 3.2.42 Kernel Configuration
 #
 CONFIG_SUSE_KERNEL=y
 # CONFIG_ENTERPRISE_SUPPORT is not set
@@ -318,6 +318,8 @@ CONFIG_CRASH_DUMP=y
 #
 # CONFIG_FIRMWARE_MEMMAP is not set
 CONFIG_EFI_VARS=y
+CONFIG_EFI_VARS_PSTORE=y
+# CONFIG_EFI_VARS_PSTORE_DEFAULT_DISABLE is not set
 CONFIG_EFI_PCDP=y
 CONFIG_DMIID=y
 CONFIG_DMI_SYSFS=m
