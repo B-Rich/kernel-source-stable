@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 3.2.51 Kernel Configuration
+# Linux/arm 3.2.55 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_MIGHT_HAVE_PCI=y
@@ -4414,7 +4414,6 @@ CONFIG_DMA_ENGINE=y
 #
 # DMA Clients
 #
-CONFIG_NET_DMA=y
 CONFIG_ASYNC_TX_DMA=y
 CONFIG_DMATEST=m
 CONFIG_AUXDISPLAY=y
