@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 3.14.15 Kernel Configuration
+# Linux/arm 3.14.19 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_MIGHT_HAVE_PCI=y
@@ -3860,6 +3860,7 @@ CONFIG_CYPRESS_FIRMWARE=m
 CONFIG_DVB_B2C2_FLEXCOP=m
 CONFIG_SMS_SIANO_MDTV=m
 CONFIG_SMS_SIANO_RC=y
+# CONFIG_SMS_SIANO_DEBUGFS is not set
 
 #
 # Media ancillary drivers (tuners, sensors, i2c, frontends)
